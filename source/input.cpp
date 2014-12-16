@@ -11,7 +11,7 @@
 #include "input.h"
 #include "gui.h"
 
-vector<vButton_s> vButtons;
+vector<IMiiWindow *> vButtons;
 touchPosition tp;
 int x;
 void UpdateInput(Input_s* input){
@@ -98,4 +98,91 @@ void clearVButtons(){
 	vButtons.clear();
 }
 
+CMiiWindow::CMiiWindow()
+{
+}
 
+CMiiWindow::~CMiiWindow()
+{
+	destroy();
+}
+
+int CMiiWindow::create(u32 x,u32 y,u32 w,u32 h,u32 id)
+{
+	sz.left=x;
+	sz.top=y;
+	sz.right=x+w;
+	sz.bottom=y+h;
+	ID=id;
+	color=0;
+	bkcolor=0xffffffff;
+	text = NULL;
+	cb = NULL;
+	accel = 0;
+	vButtons.push_back(this);
+	return 0;
+}
+
+int CMiiWindow::destroy()
+{
+	if(text){
+		free(text);
+		text = NULL;
+	}
+	return 0;
+}
+
+int CMiiWindow::draw(u8 *screen)
+{
+	return 0;
+}
+
+int CMiiWindow::set_BkColor(u32 c)
+{
+	bkcolor = c;
+	return 0;
+}
+
+int CMiiWindow::set_TextColor(u32 c)
+{
+	color=c;
+	return 0;
+}
+
+int CMiiWindow::set_Text(char *s)
+{
+	if(text != NULL)
+		free(text);
+	text=NULL;
+	if(s){
+		text = (char *)malloc(strlen(s)+1);
+		if(text == NULL)
+			return -1;
+		text[0]=0;
+		strcpy(text,s);
+	}
+	return 0;
+}
+
+int CMiiWindow::onInput(Input_s* i)
+{
+	status &= ~1;
+	if(i->touchX < sz.left)
+		return -1;
+	if(i->touchX > sz.right)
+		return -2;
+	if(i->touchY < sz.top)
+		return -3;
+	if(i->touchY > sz.bottom)
+		return -4;
+	//we are inside the widget
+	status |= 1;
+	if(cb != NULL)
+		cb(this);
+	return 0;
+}
+
+int vButton_s::draw(u8 *screen)
+{
+	return 0;
+}
